@@ -1,0 +1,13 @@
+global using VerticalSliceTest.Orders.Api.Infrastructure.Persistence;
+global using VerticalSliceTest.Orders.Api.Common.Pipelines;
+global using Microsoft.AspNetCore.Mvc.Testing;
+global using VerticalSliceTest.Orders.Api;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Data.SqlClient;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.AspNetCore.TestHost;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Testcontainers.MsSql;
+global using Testcontainers.Redis;
+global using Microsoft.Extensions.Caching.StackExchangeRedis;

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VerticalSliceTest.Orders.Api/VerticalSliceTest.Orders.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VerticalSliceTest.Orders.FunctionalTests/VerticalSliceTest.Orders.FunctionalTests.csproj" />
+    <Project Path="tests/VerticalSliceTest.Orders.IntegrationTests/VerticalSliceTest.Orders.IntegrationTests.csproj" />
+    <Project Path="tests/VerticalSliceTest.Orders.UnitTests/VerticalSliceTest.Orders.UnitTests.csproj" />
+  </Folder>
+</Solution>

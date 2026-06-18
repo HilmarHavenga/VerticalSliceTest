@@ -1,0 +1,6 @@
+@VerticalSliceTest.Orders.Api_HostAddress = http://localhost:5299
+
+GET {{VerticalSliceTest.Orders.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
