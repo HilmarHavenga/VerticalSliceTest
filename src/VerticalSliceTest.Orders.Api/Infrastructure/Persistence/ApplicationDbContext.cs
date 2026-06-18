@@ -76,4 +76,6 @@ public class ApplicationDbContext : DbContext, IUnitOfWork
 
         base.OnModelCreating(modelBuilder);
     }
+
+    public DbSet<Order> Orders => Set<Order>();
 }

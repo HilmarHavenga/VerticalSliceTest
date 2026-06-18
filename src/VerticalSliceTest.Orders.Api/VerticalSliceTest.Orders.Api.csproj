@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="Common\Database\" />
+    <Folder Include="Common\Database\Migrations\" />
   </ItemGroup>
 
 </Project>

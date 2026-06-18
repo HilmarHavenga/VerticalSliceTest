@@ -33,3 +33,5 @@ global using RabbitMQ.Client;
 global using System.Text;
 global using VerticalSliceTest.Orders.Api.Common.Endpoints;
 global using RabbitMQ.Client.Events;
+global using VerticalSliceTest.Orders.Api.Features.Orders.Common;
+global using VerticalSliceTest.Orders.Api.Features.Orders.Events;

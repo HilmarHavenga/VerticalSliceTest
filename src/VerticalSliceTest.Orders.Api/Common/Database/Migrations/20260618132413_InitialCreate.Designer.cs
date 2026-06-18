@@ -12,7 +12,7 @@ using VerticalSliceTest.Orders.Api.Infrastructure.Persistence;
 namespace VerticalSliceTest.Orders.Api.Common.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260618111950_InitialCreate")]
+    [Migration("20260618132413_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,34 @@ namespace VerticalSliceTest.Orders.Api.Common.Database.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("VerticalSliceTest.Orders.Api.Features.Orders.Common.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Orders", (string)null);
+                });
 
             modelBuilder.Entity("VerticalSliceTest.Orders.Api.Infrastructure.Persistence.Inbox.InboxMessage", b =>
                 {

@@ -6,7 +6,7 @@ internal sealed class GetWeatherForecastEndpoint : IEndpoints
 {
     public static void DefineEndpoints(IVersionedEndpointRouteBuilder app)
     {
-        RouteGroupBuilder versioned = app.MapGroup("/api/v{version:apiVersion}/calculations")
+        RouteGroupBuilder versioned = app.MapGroup("/api/v{version:apiVersion}/weather")
            //.RequireAuthorization()
            .AllowAnonymous()
            .HasApiVersion(Versions.V1)
