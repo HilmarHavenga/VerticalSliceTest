@@ -25,6 +25,7 @@ global using System.Text.Json;
 global using VerticalSliceTest.Orders.Api.Common.Pipelines;
 global using VerticalSliceTest.Orders.Api.Common.Results.Abstractions;
 global using VerticalSliceTest.Orders.Api.Common.Results;
+global using VerticalSliceTest.Orders.Api.Common.Results.Failures;
 global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Mvc;
 global using System.Collections;

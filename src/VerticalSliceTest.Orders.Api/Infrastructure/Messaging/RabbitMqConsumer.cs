@@ -33,7 +33,7 @@ internal sealed class RabbitMqConsumer(
             consumer: consumer,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        logger.LogInformation("RabbitMQ consumer started for queue {QueueName}.", _options.QueueName);
+        RabbitMqConsumerLog.Started(logger, _options.QueueName);
 
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
     }
@@ -60,11 +60,11 @@ internal sealed class RabbitMqConsumer(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogInformation("RabbitMQ message processing was cancelled for delivery {DeliveryTag}.", eventArgs.DeliveryTag);
+            RabbitMqConsumerLog.MessageProcessingCancelled(logger, eventArgs.DeliveryTag);
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Exception while consuming RabbitMQ message {DeliveryTag}.", eventArgs.DeliveryTag);
+            RabbitMqConsumerLog.ConsumingFailed(logger, exception, eventArgs.DeliveryTag);
 
             await channel.BasicNackAsync(
                 eventArgs.DeliveryTag,

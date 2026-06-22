@@ -60,7 +60,7 @@ internal sealed class RabbitMqInitializer(
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        logger.LogInformation("RabbitMQ exchange {ExchangeName} declared.", _options.ExchangeName);
+        RabbitMqInitializerLog.ExchangeDeclared(logger, _options.ExchangeName);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

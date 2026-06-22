@@ -8,6 +8,21 @@ internal sealed class CreateOrderHandler(
 {
     public async Task<Result<CreateOrderResponse>> Handle(CreateOrderRequest request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.CustomerName))
+        {
+            return Result.Failure<CreateOrderResponse>(OrderFailures.CustomerNameRequired);
+        }
+
+        if (request.CustomerName.Length > 200)
+        {
+            return Result.Failure<CreateOrderResponse>(OrderFailures.CustomerNameTooLong);
+        }
+
+        if (request.TotalAmount <= 0)
+        {
+            return Result.Failure<CreateOrderResponse>(OrderFailures.TotalAmountInvalid);
+        }
+
         DateTime createdOnUtc = dateTimeProvider.UtcNow;
 
         Order order = Order.Create(

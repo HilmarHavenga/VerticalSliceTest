@@ -9,7 +9,7 @@ internal sealed class CommandLoggingHandlerDecorator<TCommand, TResponse>(
     public async Task<TResponse> Handle(TCommand command, CancellationToken cancellationToken)
     {
         string commandName = typeof(TCommand).Name;
-        logger.LogInformation("Handling command {CommandName}", commandName);
+        CommandHandlerLog.Handling(logger, commandName);
 
         try
         {
@@ -17,12 +17,12 @@ internal sealed class CommandLoggingHandlerDecorator<TCommand, TResponse>(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Failed handling command {CommandName}", commandName);
+            CommandHandlerLog.Failed(logger, exception, commandName);
             throw;
         }
         finally
         {
-            logger.LogInformation("Handled command {CommandName}", commandName);
+            CommandHandlerLog.Handled(logger, commandName);
         }
     }
 }

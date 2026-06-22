@@ -6,17 +6,17 @@ internal sealed class CreateOrderValidator : IRequestValidator<CreateOrderReques
     {
         if (string.IsNullOrWhiteSpace(request.CustomerName))
         {
-            yield return new RequestValidationFailure(nameof(request.CustomerName), "Customer name is required.");
+            yield return new RequestValidationFailure(nameof(request.CustomerName), OrderFailures.CustomerNameRequired.Description);
         }
 
         if (request.CustomerName.Length > 200)
         {
-            yield return new RequestValidationFailure(nameof(request.CustomerName), "Customer name cannot exceed 200 characters.");
+            yield return new RequestValidationFailure(nameof(request.CustomerName), OrderFailures.CustomerNameTooLong.Description);
         }
 
         if (request.TotalAmount <= 0)
         {
-            yield return new RequestValidationFailure(nameof(request.TotalAmount), "Total amount must be greater than zero.");
+            yield return new RequestValidationFailure(nameof(request.TotalAmount), OrderFailures.TotalAmountInvalid.Description);
         }
     }
 }

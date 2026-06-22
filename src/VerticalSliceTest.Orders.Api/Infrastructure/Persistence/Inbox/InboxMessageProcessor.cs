@@ -15,7 +15,7 @@ internal sealed class InboxMessageProcessor(
 
         if (inboxMessage?.ProcessedOnUtc is not null)
         {
-            logger.LogInformation("Skipping already processed inbox message {MessageId}", envelope.MessageId);
+            InboxMessageProcessorLog.SkippingAlreadyProcessed(logger, envelope.MessageId);
             return;
         }
 

@@ -16,7 +16,7 @@ internal sealed class IntegrationEventConsumerService(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "RabbitMQ consumer stopped unexpectedly.");
+            IntegrationEventConsumerServiceLog.StoppedUnexpectedly(logger, exception);
             throw;
         }
     }

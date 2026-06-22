@@ -9,7 +9,7 @@ internal sealed class QueryLoggingHandlerDecorator<TQuery, TResponse>(
     public async Task<TResponse> Handle(TQuery query, CancellationToken cancellationToken)
     {
         string queryName = typeof(TQuery).Name;
-        logger.LogInformation("Handling query {QueryName}", queryName);
+        QueryHandlerLog.Handling(logger, queryName);
 
         try
         {
@@ -17,12 +17,12 @@ internal sealed class QueryLoggingHandlerDecorator<TQuery, TResponse>(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Failed handling query {QueryName}", queryName);
+            QueryHandlerLog.Failed(logger, exception, queryName);
             throw;
         }
         finally
         {
-            logger.LogInformation("Handled query {QueryName}", queryName);
+            QueryHandlerLog.Handled(logger, queryName);
         }
     }
 }
