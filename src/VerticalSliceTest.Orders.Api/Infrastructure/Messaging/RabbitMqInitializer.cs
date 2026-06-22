@@ -1,9 +1,9 @@
 namespace VerticalSliceTest.Orders.Api.Infrastructure.Messaging;
 
-internal sealed class RabbitMqTopologyInitializer(
+internal sealed class RabbitMqInitializer(
     IConnection connection,
     IOptions<RabbitMqOptions> options,
-    ILogger<RabbitMqTopologyInitializer> logger) : IHostedService
+    ILogger<RabbitMqInitializer> logger) : IHostedService
 {
     private readonly RabbitMqOptions _options = options.Value;
 

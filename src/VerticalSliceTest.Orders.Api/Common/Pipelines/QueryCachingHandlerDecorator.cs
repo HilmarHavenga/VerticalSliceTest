@@ -1,11 +1,11 @@
 namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
 
 internal sealed class QueryCachingHandlerDecorator<TRequest, TResponse>(
-    IRequestHandler<TRequest, TResponse> inner,
+    IQueryHandler<TRequest, TResponse> inner,
     ICacheService cacheService,
     ILogger<QueryCachingHandlerDecorator<TRequest, TResponse>> logger)
-    : IRequestHandler<TRequest, TResponse>
-    where TRequest : notnull
+    : IQueryHandler<TRequest, TResponse>
+    where TRequest : IQuery<TResponse>
 {
     public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken)
     {

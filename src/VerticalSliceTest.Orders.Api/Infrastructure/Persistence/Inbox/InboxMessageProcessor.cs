@@ -19,35 +19,42 @@ internal sealed class InboxMessageProcessor(
             return;
         }
 
-        if (inboxMessage is null)
-        {
-            inboxMessage = new InboxMessage(
-                envelope.MessageId,
-                envelope.OccurredOnUtc,
-                envelope.EventType,
-                envelope.Payload);
-
-            dbContext.Add(inboxMessage);
-            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
+        await dbContext.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
+            if (inboxMessage is null)
+            {
+                inboxMessage = new InboxMessage(
+                    envelope.MessageId,
+                    envelope.OccurredOnUtc,
+                    envelope.EventType,
+                    envelope.Payload);
+
+                dbContext.Add(inboxMessage);
+                await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             IIntegrationEvent integrationEvent = DeserializeIntegrationEvent(envelope);
 
             await DispatchAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
 
             inboxMessage.SetProcessedOnUtc(dateTimeProvider);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            await dbContext.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            await dbContext.RollbackTransactionAsync(CancellationToken.None).ConfigureAwait(false);
+            throw;
         }
         catch (Exception exception)
         {
-            inboxMessage.SetError(exception.ToString());
-            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
+            await dbContext.RollbackTransactionAsync(CancellationToken.None).ConfigureAwait(false);
+            await SaveFailedInboxMessageAsync(envelope, exception, cancellationToken).ConfigureAwait(false);
             throw;
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private IIntegrationEvent DeserializeIntegrationEvent(IntegrationEventEnvelope envelope)
@@ -82,5 +89,32 @@ internal sealed class InboxMessageProcessor(
 
             await task.ConfigureAwait(false);
         }
+    }
+
+    private async Task SaveFailedInboxMessageAsync(
+        IntegrationEventEnvelope envelope,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        dbContext.ChangeTracker.Clear();
+
+        InboxMessage? inboxMessage = await dbContext.Set<InboxMessage>()
+            .FindAsync([envelope.MessageId], cancellationToken)
+            .ConfigureAwait(false);
+
+        if (inboxMessage is null)
+        {
+            inboxMessage = new InboxMessage(
+                envelope.MessageId,
+                envelope.OccurredOnUtc,
+                envelope.EventType,
+                envelope.Payload);
+
+            dbContext.Add(inboxMessage);
+        }
+
+        inboxMessage.SetError(exception.ToString());
+
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }

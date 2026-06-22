@@ -8,7 +8,13 @@ public static class PipelineExtensions
     {
         services.Scan(scan => scan
             .FromAssemblies(assembly)
-            .AddClasses(classes => classes.AssignableTo(typeof(IRequestHandler<,>)), publicOnly: false)
+            .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)), publicOnly: false)
+            .AsImplementedInterfaces()
+            .WithTransientLifetime());
+
+        services.Scan(scan => scan
+            .FromAssemblies(assembly)
+            .AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)), publicOnly: false)
             .AsImplementedInterfaces()
             .WithTransientLifetime());
 
@@ -24,9 +30,13 @@ public static class PipelineExtensions
             .AsImplementedInterfaces()
             .WithTransientLifetime());
 
-        services.Decorate(typeof(IRequestHandler<,>), typeof(ValidationHandlerDecorator<,>));
-        services.Decorate(typeof(IRequestHandler<,>), typeof(QueryCachingHandlerDecorator<,>));
-        services.Decorate(typeof(IRequestHandler<,>), typeof(LoggingHandlerDecorator<,>));
+        services.Decorate(typeof(ICommandHandler<,>), typeof(UnitOfWorkCommandHandlerDecorator<,>));
+        services.Decorate(typeof(ICommandHandler<,>), typeof(CommandValidationHandlerDecorator<,>));
+        services.Decorate(typeof(ICommandHandler<,>), typeof(CommandLoggingHandlerDecorator<,>));
+
+        services.Decorate(typeof(IQueryHandler<,>), typeof(QueryCachingHandlerDecorator<,>));
+        services.Decorate(typeof(IQueryHandler<,>), typeof(QueryValidationHandlerDecorator<,>));
+        services.Decorate(typeof(IQueryHandler<,>), typeof(QueryLoggingHandlerDecorator<,>));
 
         return services;
     }

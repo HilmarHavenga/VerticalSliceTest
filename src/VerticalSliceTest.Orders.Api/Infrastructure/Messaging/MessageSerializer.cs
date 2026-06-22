@@ -1,6 +1,6 @@
 namespace VerticalSliceTest.Orders.Api.Infrastructure.Messaging;
 
-internal sealed class SystemTextJsonMessageSerializer : IMessageSerializer
+internal sealed class MessageSerializer : IMessageSerializer
 {
     private static readonly JsonSerializerOptions _serializerOptions = new(JsonSerializerDefaults.Web);
 

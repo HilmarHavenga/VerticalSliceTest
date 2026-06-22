@@ -1,6 +1,6 @@
 namespace VerticalSliceTest.Orders.Api.Features.Weather.GetWeatherForecast;
 
-internal sealed class GetWeatherForecastHandler : IRequestHandler<GetWeatherForecastQuery, Result<GetWeatherForecastResponse[]>>
+internal sealed class GetWeatherForecastHandler : IQueryHandler<GetWeatherForecastQuery, Result<GetWeatherForecastResponse[]>>
 {
     private static readonly string[] Summaries =
     [

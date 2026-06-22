@@ -20,7 +20,7 @@ public class CreateOrderEndpoint : IEndpoints
 
     internal static async Task<IResult> CreateOrderAsync(
         CreateOrderRequest orderRequest,
-        IRequestHandler<CreateOrderRequest, Result<CreateOrderResponse>> handler,
+        ICommandHandler<CreateOrderRequest, Result<CreateOrderResponse>> handler,
         CancellationToken cancellationToken)
     {
         var result = await handler.Handle(orderRequest, cancellationToken);

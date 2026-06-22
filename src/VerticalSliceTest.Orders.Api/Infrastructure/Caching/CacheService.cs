@@ -1,6 +1,3 @@
-using System.Buffers;
-using Microsoft.Extensions.Caching.Distributed;
-
 namespace VerticalSliceTest.Orders.Api.Infrastructure.Caching;
 
 internal sealed class CacheService(IDistributedCache cache) : ICacheService

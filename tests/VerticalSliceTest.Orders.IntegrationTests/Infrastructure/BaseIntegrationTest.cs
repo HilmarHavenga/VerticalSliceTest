@@ -20,9 +20,15 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
         get;
     }
 
-    protected IRequestHandler<TRequest, TResponse> Handler<TRequest, TResponse>()
-        where TRequest : notnull
+    protected ICommandHandler<TCommand, TResponse> CommandHandler<TCommand, TResponse>()
+        where TCommand : ICommand<TResponse>
     {
-        return Scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
+        return Scope.ServiceProvider.GetRequiredService<ICommandHandler<TCommand, TResponse>>();
+    }
+
+    protected IQueryHandler<TQuery, TResponse> QueryHandler<TQuery, TResponse>()
+        where TQuery : IQuery<TResponse>
+    {
+        return Scope.ServiceProvider.GetRequiredService<IQueryHandler<TQuery, TResponse>>();
     }
 }

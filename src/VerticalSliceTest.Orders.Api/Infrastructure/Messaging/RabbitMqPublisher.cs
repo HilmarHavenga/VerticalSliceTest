@@ -1,9 +1,9 @@
 namespace VerticalSliceTest.Orders.Api.Infrastructure.Messaging;
 
-internal sealed class RabbitMqEventBus(
+internal sealed class RabbitMqPublisher(
     IMessageSerializer messageSerializer,
     IConnection connection,
-    IOptions<RabbitMqOptions> options) : IEventBus
+    IOptions<RabbitMqOptions> options) : IPublisher
 {
     private readonly RabbitMqOptions _options = options.Value;
 

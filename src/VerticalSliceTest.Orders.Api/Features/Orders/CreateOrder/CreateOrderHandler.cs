@@ -4,7 +4,7 @@ internal sealed class CreateOrderHandler(
     IDateTimeProvider dateTimeProvider,
     ApplicationDbContext db,
     IMessageSerializer messageSerializer)
-    : IRequestHandler<CreateOrderRequest, Result<CreateOrderResponse>>
+    : ICommandHandler<CreateOrderRequest, Result<CreateOrderResponse>>
 {
     public async Task<Result<CreateOrderResponse>> Handle(CreateOrderRequest request, CancellationToken cancellationToken)
     {
@@ -30,8 +30,6 @@ internal sealed class CreateOrderHandler(
 
         db.Orders.Add(order);
         db.Add(outboxMessage);
-
-        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         CreateOrderResponse response = new(
             order.Id,

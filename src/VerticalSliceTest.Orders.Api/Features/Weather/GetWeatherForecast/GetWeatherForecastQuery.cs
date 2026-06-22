@@ -1,6 +1,6 @@
 namespace VerticalSliceTest.Orders.Api.Features.Weather.GetWeatherForecast;
 
-internal sealed record GetWeatherForecastQuery : ICachedQuery
+internal sealed record GetWeatherForecastQuery : IQuery<Result<GetWeatherForecastResponse[]>>, ICachedQuery
 {
     public string CacheKey => "weather-forecast";
 

@@ -1,0 +1,76 @@
+namespace VerticalSliceTest.Orders.Api.Infrastructure.Messaging;
+
+internal sealed class RabbitMqConsumer(
+    IConnection connection,
+    IMessageSerializer messageSerializer,
+    IOptions<RabbitMqOptions> options,
+    ILogger<RabbitMqConsumer> logger) : IConsumer
+{
+    private readonly RabbitMqOptions _options = options.Value;
+
+    public async Task ConsumeAsync(
+        Func<IntegrationEventEnvelope, CancellationToken, Task> handleMessageAsync,
+        CancellationToken cancellationToken = default)
+    {
+        await using IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        await channel.BasicQosAsync(
+            prefetchSize: 0,
+            prefetchCount: _options.PrefetchCount,
+            global: false,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        AsyncEventingBasicConsumer consumer = new(channel);
+
+        consumer.ReceivedAsync += async (_, eventArgs) =>
+        {
+            await HandleReceivedAsync(channel, eventArgs, handleMessageAsync, cancellationToken).ConfigureAwait(false);
+        };
+
+        await channel.BasicConsumeAsync(
+            queue: _options.QueueName,
+            autoAck: false,
+            consumer: consumer,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        logger.LogInformation("RabbitMQ consumer started for queue {QueueName}.", _options.QueueName);
+
+        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task HandleReceivedAsync(
+        IChannel channel,
+        BasicDeliverEventArgs eventArgs,
+        Func<IntegrationEventEnvelope, CancellationToken, Task> handleMessageAsync,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            string message = Encoding.UTF8.GetString(eventArgs.Body.Span);
+
+            IntegrationEventEnvelope envelope = messageSerializer.Deserialize<IntegrationEventEnvelope>(message) ??
+                throw new InvalidOperationException("RabbitMQ message could not be deserialized as an integration event envelope.");
+
+            await handleMessageAsync(envelope, cancellationToken).ConfigureAwait(false);
+
+            await channel.BasicAckAsync(
+                eventArgs.DeliveryTag,
+                multiple: false,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            logger.LogInformation("RabbitMQ message processing was cancelled for delivery {DeliveryTag}.", eventArgs.DeliveryTag);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Exception while consuming RabbitMQ message {DeliveryTag}.", eventArgs.DeliveryTag);
+
+            await channel.BasicNackAsync(
+                eventArgs.DeliveryTag,
+                multiple: false,
+                requeue: false,
+                cancellationToken: CancellationToken.None).ConfigureAwait(false);
+        }
+    }
+}

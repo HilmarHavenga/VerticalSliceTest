@@ -3,7 +3,7 @@ namespace VerticalSliceTest.Orders.Api.Infrastructure.Persistence.Outbox;
 internal sealed class OutboxMessageProcessor(
     ApplicationDbContext dbContext,
     IDateTimeProvider dateTimeProvider,
-    IEventBus eventBus,
+    IPublisher eventBus,
     IMessageSerializer messageSerializer,
     ILogger<OutboxMessageProcessor> logger) : IOutboxMessageProcessor
 {

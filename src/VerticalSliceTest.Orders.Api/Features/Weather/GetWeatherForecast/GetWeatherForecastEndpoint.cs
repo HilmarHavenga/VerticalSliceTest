@@ -18,7 +18,7 @@ internal sealed class GetWeatherForecastEndpoint : IEndpoints
     }
 
     internal static async Task<IResult> GetWeatherForecastAsync(
-        IRequestHandler<GetWeatherForecastQuery, Result<GetWeatherForecastResponse[]>> handler,
+        IQueryHandler<GetWeatherForecastQuery, Result<GetWeatherForecastResponse[]>> handler,
         CancellationToken cancellationToken)
     {
         Result<GetWeatherForecastResponse[]> result = await handler
