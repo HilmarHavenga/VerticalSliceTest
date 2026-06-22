@@ -1,4 +1,4 @@
-namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
+namespace VerticalSliceTest.Orders.Api.Common.Queries;
 
 internal sealed class QueryLoggingHandlerDecorator<TQuery, TResponse>(
     IQueryHandler<TQuery, TResponse> inner,

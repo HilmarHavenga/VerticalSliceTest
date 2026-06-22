@@ -1,7 +1,6 @@
 namespace VerticalSliceTest.Orders.Api.Infrastructure.Messaging;
 
 internal sealed class RabbitMqPublisher(
-    IMessageSerializer messageSerializer,
     IConnection connection,
     IOptions<RabbitMqOptions> options) : IPublisher
 {
@@ -11,7 +10,7 @@ internal sealed class RabbitMqPublisher(
         where TEvent : IIntegrationEvent
     {
         Type eventType = integrationEvent.GetType();
-        string payload = messageSerializer.Serialize(integrationEvent);
+        string payload = MessageSerialization.Serialize(integrationEvent);
 
         IntegrationEventEnvelope envelope = new(
             integrationEvent.Id,
@@ -19,7 +18,7 @@ internal sealed class RabbitMqPublisher(
             payload,
             integrationEvent.OccurredOnUtc);
 
-        string envelopePayload = messageSerializer.Serialize(envelope);
+        string envelopePayload = MessageSerialization.Serialize(envelope);
         byte[] body = Encoding.UTF8.GetBytes(envelopePayload);
 
         await using IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);

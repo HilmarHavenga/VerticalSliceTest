@@ -1,4 +1,4 @@
-namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
+namespace VerticalSliceTest.Orders.Api.Common.Validation;
 
 public interface IRequestValidator<in TRequest>
     where TRequest : notnull

@@ -1,6 +1,4 @@
-﻿using VerticalSliceTest.Orders.Api.Common.Endpoints;
-
-namespace VerticalSliceTest.Orders.Api.Features.Weather.GetWeatherForecast;
+﻿namespace VerticalSliceTest.Orders.Api.Features.Weather.GetWeatherForecast;
 
 internal sealed class GetWeatherForecastEndpoint : IEndpoints
 {

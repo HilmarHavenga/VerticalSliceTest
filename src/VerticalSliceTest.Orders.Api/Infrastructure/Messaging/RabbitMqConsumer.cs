@@ -2,7 +2,6 @@ namespace VerticalSliceTest.Orders.Api.Infrastructure.Messaging;
 
 internal sealed class RabbitMqConsumer(
     IConnection connection,
-    IMessageSerializer messageSerializer,
     IOptions<RabbitMqOptions> options,
     ILogger<RabbitMqConsumer> logger) : IConsumer
 {
@@ -48,7 +47,7 @@ internal sealed class RabbitMqConsumer(
         {
             string message = Encoding.UTF8.GetString(eventArgs.Body.Span);
 
-            IntegrationEventEnvelope envelope = messageSerializer.Deserialize<IntegrationEventEnvelope>(message) ??
+            IntegrationEventEnvelope envelope = MessageSerialization.Deserialize<IntegrationEventEnvelope>(message) ??
                 throw new InvalidOperationException("RabbitMQ message could not be deserialized as an integration event envelope.");
 
             await handleMessageAsync(envelope, cancellationToken).ConfigureAwait(false);

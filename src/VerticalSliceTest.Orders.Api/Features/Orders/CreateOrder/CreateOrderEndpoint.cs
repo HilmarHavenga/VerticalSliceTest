@@ -27,6 +27,6 @@ public class CreateOrderEndpoint : IEndpoints
 
         return result.IsSuccess
             ? Results.Created($"/api/v1/orders/{result.Value.Id}", result.Value)
-            : result.Error.ToFailureResult("Failed to create order");
+            : result.Error.ToFailureResult(OrderProblemTitles.CreateFailed);
     }
 }

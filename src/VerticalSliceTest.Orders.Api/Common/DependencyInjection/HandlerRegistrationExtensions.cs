@@ -1,6 +1,6 @@
-namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
+namespace VerticalSliceTest.Orders.Api.Common.DependencyInjection;
 
-public static class PipelineExtensions
+public static class HandlerRegistrationExtensions
 {
     public static IServiceCollection AddRequestHandlersFromAssembly(
         this IServiceCollection services,

@@ -16,6 +16,17 @@ internal sealed class OutboxMessage
         Content = content;
     }
 
+    public static OutboxMessage FromIntegrationEvent(IIntegrationEvent integrationEvent)
+    {
+        Type eventType = integrationEvent.GetType();
+
+        return new OutboxMessage(
+            integrationEvent.Id,
+            integrationEvent.OccurredOnUtc,
+            eventType.AssemblyQualifiedName ?? eventType.FullName ?? eventType.Name,
+            MessageSerialization.Serialize(integrationEvent, eventType));
+    }
+
     public Guid Id
     {
         get; init;

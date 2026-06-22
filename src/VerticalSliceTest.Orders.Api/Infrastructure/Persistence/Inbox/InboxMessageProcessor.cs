@@ -3,7 +3,6 @@ namespace VerticalSliceTest.Orders.Api.Infrastructure.Persistence.Inbox;
 internal sealed class InboxMessageProcessor(
     ApplicationDbContext dbContext,
     IDateTimeProvider dateTimeProvider,
-    IMessageSerializer messageSerializer,
     IServiceProvider serviceProvider,
     ILogger<InboxMessageProcessor> logger) : IInboxMessageProcessor
 {
@@ -71,7 +70,7 @@ internal sealed class InboxMessageProcessor(
             throw new InvalidOperationException($"Type '{eventType.Name}' is not an integration event.");
         }
 
-        return (IIntegrationEvent)messageSerializer.Deserialize(envelope.Payload, eventType)!;
+        return (IIntegrationEvent)MessageSerialization.Deserialize(envelope.Payload, eventType)!;
     }
 
     private async Task DispatchAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken)

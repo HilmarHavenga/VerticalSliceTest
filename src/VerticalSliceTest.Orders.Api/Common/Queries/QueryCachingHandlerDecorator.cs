@@ -1,4 +1,4 @@
-namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
+namespace VerticalSliceTest.Orders.Api.Common.Queries;
 
 internal sealed class QueryCachingHandlerDecorator<TRequest, TResponse>(
     IQueryHandler<TRequest, TResponse> inner,

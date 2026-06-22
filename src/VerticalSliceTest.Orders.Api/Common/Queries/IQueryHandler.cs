@@ -1,4 +1,4 @@
-namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
+namespace VerticalSliceTest.Orders.Api.Common.Queries;
 
 public interface IQueryHandler<in TQuery, TResponse>
     where TQuery : IQuery<TResponse>

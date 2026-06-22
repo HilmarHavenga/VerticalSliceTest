@@ -4,7 +4,6 @@ internal sealed class OutboxMessageProcessor(
     ApplicationDbContext dbContext,
     IDateTimeProvider dateTimeProvider,
     IPublisher eventBus,
-    IMessageSerializer messageSerializer,
     ILogger<OutboxMessageProcessor> logger) : IOutboxMessageProcessor
 {
     public async Task ProcessAsync(int batchSize, CancellationToken cancellationToken = default)
@@ -62,6 +61,6 @@ internal sealed class OutboxMessageProcessor(
             throw new InvalidOperationException($"Type '{concreteType.Name}' is not an integration event.");
         }
 
-        return (IIntegrationEvent)messageSerializer.Deserialize(outboxMessage.Content, concreteType)!;
+        return (IIntegrationEvent)MessageSerialization.Deserialize(outboxMessage.Content, concreteType)!;
     }
 }

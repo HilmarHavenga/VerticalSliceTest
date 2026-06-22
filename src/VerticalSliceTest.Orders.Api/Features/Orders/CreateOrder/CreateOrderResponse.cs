@@ -5,4 +5,8 @@ internal sealed record CreateOrderResponse(
     string CustomerName,
     decimal TotalAmount,
     OrderStatus Status,
-    DateTime CreatedOnUtc);
+    DateTime CreatedOnUtc)
+{
+    public static CreateOrderResponse CreateFromOrder(Order order)
+        => new(order.Id, order.CustomerName, order.TotalAmount, order.Status, order.CreatedOnUtc);
+}

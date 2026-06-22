@@ -37,3 +37,7 @@ global using VerticalSliceTest.Orders.Api.Features.Orders.Common;
 global using VerticalSliceTest.Orders.Api.Features.Orders.Events;
 global using System.Buffers;
 global using Microsoft.Extensions.Caching.Distributed;
+global using VerticalSliceTest.Orders.Api.Common.Commands;
+global using VerticalSliceTest.Orders.Api.Common.Queries;
+global using VerticalSliceTest.Orders.Api.Common.Validation;
+global using VerticalSliceTest.Orders.Api.Common.DependencyInjection;

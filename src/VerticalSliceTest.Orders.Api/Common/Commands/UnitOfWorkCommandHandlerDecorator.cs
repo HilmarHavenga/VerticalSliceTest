@@ -1,4 +1,4 @@
-namespace VerticalSliceTest.Orders.Api.Common.Pipelines;
+namespace VerticalSliceTest.Orders.Api.Common.Commands;
 
 internal sealed class UnitOfWorkCommandHandlerDecorator<TCommand, TResponse>(
     ICommandHandler<TCommand, TResponse> inner,

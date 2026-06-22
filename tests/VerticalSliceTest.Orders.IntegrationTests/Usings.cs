@@ -1,5 +1,4 @@
 global using VerticalSliceTest.Orders.Api.Infrastructure.Persistence;
-global using VerticalSliceTest.Orders.Api.Common.Pipelines;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using VerticalSliceTest.Orders.Api;
 global using Microsoft.Extensions.DependencyInjection;

@@ -1,4 +1,7 @@
-﻿namespace VerticalSliceTest.Orders.IntegrationTests.Infrastructure;
+﻿using VerticalSliceTest.Orders.Api.Common.Commands;
+using VerticalSliceTest.Orders.Api.Common.Queries;
+
+namespace VerticalSliceTest.Orders.IntegrationTests.Infrastructure;
 
 public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>
 {

@@ -2,27 +2,11 @@ namespace VerticalSliceTest.Orders.Api.Features.Orders.CreateOrder;
 
 internal sealed class CreateOrderHandler(
     IDateTimeProvider dateTimeProvider,
-    ApplicationDbContext db,
-    IMessageSerializer messageSerializer)
+    ApplicationDbContext db)
     : ICommandHandler<CreateOrderRequest, Result<CreateOrderResponse>>
 {
     public async Task<Result<CreateOrderResponse>> Handle(CreateOrderRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.CustomerName))
-        {
-            return Result.Failure<CreateOrderResponse>(OrderFailures.CustomerNameRequired);
-        }
-
-        if (request.CustomerName.Length > 200)
-        {
-            return Result.Failure<CreateOrderResponse>(OrderFailures.CustomerNameTooLong);
-        }
-
-        if (request.TotalAmount <= 0)
-        {
-            return Result.Failure<CreateOrderResponse>(OrderFailures.TotalAmountInvalid);
-        }
-
         DateTime createdOnUtc = dateTimeProvider.UtcNow;
 
         Order order = Order.Create(
@@ -31,27 +15,12 @@ internal sealed class CreateOrderHandler(
             request.TotalAmount,
             createdOnUtc);
 
-        OrderCreatedIntegrationEvent integrationEvent = new(
-            Guid.CreateVersion7(),
-            createdOnUtc,
-            order.Id);
-
-        Type eventType = integrationEvent.GetType();
-        OutboxMessage outboxMessage = new(
-            integrationEvent.Id,
-            integrationEvent.OccurredOnUtc,
-            eventType.AssemblyQualifiedName ?? eventType.FullName ?? eventType.Name,
-            messageSerializer.Serialize(integrationEvent));
+        OrderCreatedIntegrationEvent integrationEvent = new(Guid.CreateVersion7(), createdOnUtc, order.Id);
 
         db.Orders.Add(order);
-        db.Add(outboxMessage);
+        db.Add(OutboxMessage.FromIntegrationEvent(integrationEvent));
 
-        CreateOrderResponse response = new(
-            order.Id,
-            order.CustomerName,
-            order.TotalAmount,
-            order.Status,
-            order.CreatedOnUtc);
+        CreateOrderResponse response = CreateOrderResponse.CreateFromOrder(order);
 
         return Result.Success(response);
     }

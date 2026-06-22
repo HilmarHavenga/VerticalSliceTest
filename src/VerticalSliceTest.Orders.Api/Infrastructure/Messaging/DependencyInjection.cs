@@ -22,7 +22,6 @@ public static class DependencyInjection
             return factory.CreateConnectionAsync().GetAwaiter().GetResult();
         });
 
-        services.AddSingleton<IMessageSerializer, MessageSerializer>();
         services.AddSingleton<IPublisher, RabbitMqPublisher>();
         services.AddSingleton<IConsumer, RabbitMqConsumer>();
         services.AddHostedService<RabbitMqInitializer>();
