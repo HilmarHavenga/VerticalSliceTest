@@ -1,5 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddTelemetry();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
