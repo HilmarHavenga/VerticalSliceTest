@@ -50,7 +50,23 @@ internal sealed class RabbitMqConsumer(
             IntegrationEventEnvelope envelope = MessageSerialization.Deserialize<IntegrationEventEnvelope>(message) ??
                 throw new InvalidOperationException("RabbitMQ message could not be deserialized as an integration event envelope.");
 
-            await handleMessageAsync(envelope, cancellationToken).ConfigureAwait(false);
+            using Activity? activity = TelemetryActivitySource.StartActivity(TelemetryActivityNames.MessagingConsume(envelope.EventType), ActivityKind.Consumer);
+            activity?.SetTag(TelemetryTags.MessagingSystem, TelemetryTagValues.RabbitMq);
+            activity?.SetTag(TelemetryTags.MessagingDestinationName, _options.QueueName);
+            activity?.SetTag(TelemetryTags.MessagingOperationName, TelemetryTagValues.Consume);
+            activity?.SetTag(TelemetryTags.MessagingMessageId, envelope.MessageId);
+            activity?.SetTag(TelemetryTags.MessagingMessageType, envelope.EventType);
+
+            try
+            {
+                await handleMessageAsync(envelope, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
+                activity?.AddException(exception);
+                throw;
+            }
 
             await channel.BasicAckAsync(
                 eventArgs.DeliveryTag,

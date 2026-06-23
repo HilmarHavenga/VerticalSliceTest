@@ -46,6 +46,7 @@ public static class DependencyInjection
             openTelemetryBuilder.WithTracing(tracing =>
             {
                 tracing
+                    .AddSource(TelemetryActivitySource.Name)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation();
 

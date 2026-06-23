@@ -1,6 +1,6 @@
 # Vertical Slice Orders API
 
-This is a vertical-slice ASP.NET Core API template for an Orders microservice. It demonstrates feature-based organization, custom request pipelines, EF Core persistence, Result-based handlers, RabbitMQ integration events, outbox/inbox reliability patterns, health checks, and integration-first testing.
+This is a vertical-slice ASP.NET Core API template for an Orders microservice. It demonstrates feature-based organization, command/query handlers, EF Core persistence, Result-based handlers, RabbitMQ integration events, outbox/inbox reliability patterns, health checks, OpenTelemetry, and integration-first testing.
 
 ## Architecture
 
@@ -19,8 +19,9 @@ src/VerticalSliceTest.Orders.Api/
 - **Vertical slice architecture:** each use case owns its endpoint, request/query/command, handler, validator, and response.
 - **Minimal APIs:** endpoints are discovered by scanning classes implementing `IEndpoints`.
 - **Custom command/query pipeline:** commands use `ICommandHandler<TCommand,TResponse>` and queries use `IQueryHandler<TQuery,TResponse>`.
-- **Scrutor scanning:** request handlers, validators, and integration event handlers are registered by assembly scan.
+- **Scrutor scanning:** command handlers, query handlers, validators, and integration event handlers are registered by assembly scan.
 - **Result pattern:** handlers return `Result<T>` for expected success/failure outcomes.
+- **Central failures:** shared and feature failures live in static failure classes.
 - **Global exception handling:** unexpected and pipeline exceptions are converted to clean `ProblemDetails` responses.
 - **EF Core with SQL Server:** persistence is wired through `ApplicationDbContext`.
 - **Outbox pattern:** feature handlers save outgoing integration events in the database with business changes.
@@ -28,6 +29,7 @@ src/VerticalSliceTest.Orders.Api/
 - **RabbitMQ pub/sub:** RabbitMQ is the current broker behind the messaging abstractions.
 - **Dead-letter queue:** failed inbound RabbitMQ messages are routed to a DLQ instead of being lost or retried forever.
 - **Distributed cache abstraction:** handlers use `ICacheService`; the backing store can be swapped.
+- **OpenTelemetry:** logs, traces, and metrics are configurable through console or OTLP exporters.
 - **Integration-first testing:** integration and functional tests are preferred; unit tests are reserved for difficult edge cases.
 
 ## Runtime Flow
@@ -38,6 +40,7 @@ src/VerticalSliceTest.Orders.Api/
 Endpoint
 -> ICommandHandler<TCommand, Result<TResponse>>
 -> Logging decorator
+-> Telemetry decorator
 -> Validation decorator
 -> Unit of work decorator
 -> Handler
@@ -61,7 +64,8 @@ Handler adds business state
 
 ```text
 RabbitMQ message
--> RabbitMqConsumerService
+-> IntegrationEventConsumerService
+-> IConsumer implementation
 -> deserialize IntegrationEventEnvelope
 -> InboxMessageProcessor
 -> check InboxMessages for duplicate
@@ -115,7 +119,7 @@ public sealed record CreateOrderResponse(
 
 ### 3. Validator
 
-Implement `IRequestValidator<TRequest>`.
+Implement `IRequestValidator<TRequest>`. Reuse feature failure descriptions instead of hardcoded validation text.
 
 ```csharp
 internal sealed class CreateOrderValidator : IRequestValidator<CreateOrderRequest>
@@ -124,7 +128,7 @@ internal sealed class CreateOrderValidator : IRequestValidator<CreateOrderReques
     {
         if (string.IsNullOrWhiteSpace(request.CustomerName))
         {
-            yield return new RequestValidationFailure(nameof(request.CustomerName), "Customer name is required.");
+            yield return new RequestValidationFailure(nameof(request.CustomerName), OrderFailures.CustomerNameRequired.Description);
         }
     }
 }
@@ -143,7 +147,7 @@ internal sealed class CreateOrderHandler : ICommandHandler<CreateOrderRequest, R
     {
         // create domain/persistence model
         // add database state
-        // optionally write outbox message
+        // optionally add OutboxMessage.FromIntegrationEvent(...)
         // do not call SaveChangesAsync for commands; the UoW decorator commits
         // return Result.Success(response)
     }
@@ -180,7 +184,7 @@ internal sealed class CreateOrderEndpoint : IEndpoints
 
         return result.IsSuccess
             ? Results.Created($"/api/v1/orders/{result.Value.Id}", result.Value)
-            : result.Error.ToFailureResult("Failed to create order");
+            : result.Error.ToFailureResult(OrderProblemTitles.CreateFailed);
     }
 }
 ```
@@ -269,7 +273,7 @@ internal sealed class SomeEventHandler : IIntegrationEventHandler<SomeIntegratio
 }
 ```
 
-Handlers are discovered automatically by Scrutor. RabbitMQ messages are consumed by `RabbitMqConsumerService`, deduplicated through the inbox, and dispatched to matching handlers.
+Handlers are discovered automatically by Scrutor. RabbitMQ messages are consumed by `IntegrationEventConsumerService` through `IConsumer`, deduplicated through the inbox, and dispatched to matching handlers.
 
 ## Caching Queries
 
@@ -284,6 +288,59 @@ internal sealed record GetOrderByIdQuery(Guid Id) : IQuery<Result<GetOrderByIdRe
 ```
 
 Only successful results are cached when the response exposes `IsSuccess`.
+
+## Failures and Problem Titles
+
+Put shared failures under:
+
+```text
+Common/Results/Failures
+```
+
+Put feature failures under:
+
+```text
+Features/<Area>/Common
+```
+
+Example:
+
+```csharp
+public static class OrderFailures
+{
+    public static Failure CustomerNameRequired => new("Order.CustomerNameRequired", "Customer name is required.");
+}
+```
+
+Keep endpoint problem titles centralized per feature/use case instead of hardcoding strings in endpoints.
+
+## Telemetry
+
+The app uses normal `ILogger<T>` and OpenTelemetry.
+
+Telemetry is configured through:
+
+```json
+"Telemetry": {
+  "Enabled": true,
+  "Exporter": "Console",
+  "OtlpEndpoint": "http://localhost:5341/ingest/otlp",
+  "OtlpProtocol": "HttpProtobuf",
+  "ExportLogs": true,
+  "ExportTraces": true,
+  "ExportMetrics": false
+}
+```
+
+Use `Console` only for quick local checks. Use `Otlp` for Seq, Grafana, Azure Monitor, or an OpenTelemetry Collector.
+
+Custom spans are added for:
+
+- command handlers
+- query handlers
+- RabbitMQ publish/consume
+- inbox processing
+- outbox processing
 
 ## Testing Guidance
 
@@ -329,19 +386,15 @@ Main sections:
     "DeadLetterQueueName": "orders-api.integration-events.dlq",
     "PrefetchCount": 10,
     "RoutingKeys": [ "#" ]
+  },
+  "Telemetry": {
+    "Enabled": false,
+    "Exporter": "None",
+    "OtlpEndpoint": "",
+    "OtlpProtocol": "HttpProtobuf",
+    "ExportLogs": true,
+    "ExportTraces": true,
+    "ExportMetrics": true
   }
 }
 ```
-
-Do not commit real credentials. Use user secrets, environment variables, or untracked local settings for secrets.
-
-## Clone Checklist
-
-When cloning this template for a new service:
-
-1. Rename project and namespaces.
-2. Rename RabbitMQ exchange, queue, and DLQ names.
-3. Change database name.
-4. Replace Orders sample features with service-specific features.
-5. Keep `Common` and `Infrastructure` patterns unless the service has a real reason to differ.
-6. Add one complete create/read feature before adding more infrastructure.

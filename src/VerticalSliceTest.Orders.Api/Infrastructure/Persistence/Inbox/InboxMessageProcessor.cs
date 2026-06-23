@@ -8,12 +8,17 @@ internal sealed class InboxMessageProcessor(
 {
     public async Task ProcessAsync(IntegrationEventEnvelope envelope, CancellationToken cancellationToken = default)
     {
+        using Activity? activity = TelemetryActivitySource.StartActivity(TelemetryActivityNames.InboxProcess);
+        activity?.SetTag(TelemetryTags.InboxMessageId, envelope.MessageId);
+        activity?.SetTag(TelemetryTags.MessagingMessageType, envelope.EventType);
+
         InboxMessage? inboxMessage = await dbContext.Set<InboxMessage>()
             .FindAsync([envelope.MessageId], cancellationToken)
             .ConfigureAwait(false);
 
         if (inboxMessage?.ProcessedOnUtc is not null)
         {
+            activity?.SetTag(TelemetryTags.InboxDuplicate, true);
             InboxMessageProcessorLog.SkippingAlreadyProcessed(logger, envelope.MessageId);
             return;
         }
@@ -50,6 +55,8 @@ internal sealed class InboxMessageProcessor(
         }
         catch (Exception exception)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
+            activity?.AddException(exception);
             await dbContext.RollbackTransactionAsync(CancellationToken.None).ConfigureAwait(false);
             await SaveFailedInboxMessageAsync(envelope, exception, cancellationToken).ConfigureAwait(false);
             throw;

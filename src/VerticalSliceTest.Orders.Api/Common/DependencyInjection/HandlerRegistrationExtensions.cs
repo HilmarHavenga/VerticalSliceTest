@@ -32,10 +32,12 @@ public static class HandlerRegistrationExtensions
 
         services.Decorate(typeof(ICommandHandler<,>), typeof(UnitOfWorkCommandHandlerDecorator<,>));
         services.Decorate(typeof(ICommandHandler<,>), typeof(CommandValidationHandlerDecorator<,>));
+        services.Decorate(typeof(ICommandHandler<,>), typeof(CommandTelemetryHandlerDecorator<,>));
         services.Decorate(typeof(ICommandHandler<,>), typeof(CommandLoggingHandlerDecorator<,>));
 
         services.Decorate(typeof(IQueryHandler<,>), typeof(QueryCachingHandlerDecorator<,>));
         services.Decorate(typeof(IQueryHandler<,>), typeof(QueryValidationHandlerDecorator<,>));
+        services.Decorate(typeof(IQueryHandler<,>), typeof(QueryTelemetryHandlerDecorator<,>));
         services.Decorate(typeof(IQueryHandler<,>), typeof(QueryLoggingHandlerDecorator<,>));
 
         return services;

@@ -10,6 +10,14 @@ internal sealed class RabbitMqPublisher(
         where TEvent : IIntegrationEvent
     {
         Type eventType = integrationEvent.GetType();
+
+        using Activity? activity = TelemetryActivitySource.StartActivity(TelemetryActivityNames.MessagingPublish(eventType.Name), ActivityKind.Producer);
+        activity?.SetTag(TelemetryTags.MessagingSystem, TelemetryTagValues.RabbitMq);
+        activity?.SetTag(TelemetryTags.MessagingDestinationName, _options.ExchangeName);
+        activity?.SetTag(TelemetryTags.MessagingOperationName, TelemetryTagValues.Publish);
+        activity?.SetTag(TelemetryTags.MessagingMessageId, integrationEvent.Id);
+        activity?.SetTag(TelemetryTags.MessagingMessageType, eventType.Name);
+
         string payload = MessageSerialization.Serialize(integrationEvent);
 
         IntegrationEventEnvelope envelope = new(

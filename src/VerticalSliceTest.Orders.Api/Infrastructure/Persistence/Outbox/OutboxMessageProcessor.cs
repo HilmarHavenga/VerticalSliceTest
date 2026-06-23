@@ -3,16 +3,21 @@ namespace VerticalSliceTest.Orders.Api.Infrastructure.Persistence.Outbox;
 internal sealed class OutboxMessageProcessor(
     ApplicationDbContext dbContext,
     IDateTimeProvider dateTimeProvider,
-    IPublisher eventBus,
+    IPublisher publisher,
     ILogger<OutboxMessageProcessor> logger) : IOutboxMessageProcessor
 {
     public async Task ProcessAsync(int batchSize, CancellationToken cancellationToken = default)
     {
+        using Activity? activity = TelemetryActivitySource.StartActivity(TelemetryActivityNames.OutboxProcess);
+        activity?.SetTag(TelemetryTags.OutboxBatchSize, batchSize);
+
         List<OutboxMessage> outboxMessages = await dbContext.Set<OutboxMessage>()
             .Where(outboxMessage => outboxMessage.ProcessedOnUtc == null)
             .OrderBy(outboxMessage => outboxMessage.OccurredOnUtc)
             .Take(batchSize)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        activity?.SetTag(TelemetryTags.OutboxMessageCount, outboxMessages.Count);
 
         foreach (OutboxMessage outboxMessage in outboxMessages)
         {
@@ -20,14 +25,20 @@ internal sealed class OutboxMessageProcessor(
 
             try
             {
+                using Activity? messageActivity = TelemetryActivitySource.StartActivity(TelemetryActivityNames.OutboxPublishMessage);
+                messageActivity?.SetTag(TelemetryTags.OutboxMessageId, outboxMessage.Id);
+                messageActivity?.SetTag(TelemetryTags.MessagingMessageType, outboxMessage.Type);
+
                 IIntegrationEvent integrationEvent = DeserializeIntegrationEvent(outboxMessage);
 
-                await eventBus.PublishAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
+                await publisher.PublishAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
 
                 OutboxWorkerLog.PublishedEvent(logger, integrationEvent.GetType().Name);
             }
             catch (Exception caughtException)
             {
+                activity?.SetStatus(ActivityStatusCode.Error, caughtException.Message);
+                activity?.AddException(caughtException);
                 OutboxWorkerLog.ProcessingFailed(logger, caughtException, outboxMessage.Id.ToString());
                 exception = caughtException;
             }

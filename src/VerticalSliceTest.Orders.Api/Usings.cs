@@ -36,6 +36,7 @@ global using RabbitMQ.Client.Events;
 global using VerticalSliceTest.Orders.Api.Features.Orders.Common;
 global using VerticalSliceTest.Orders.Api.Features.Orders.Events;
 global using System.Buffers;
+global using System.Diagnostics;
 global using Microsoft.Extensions.Caching.Distributed;
 global using OpenTelemetry;
 global using OpenTelemetry.Exporter;
